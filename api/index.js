@@ -5,9 +5,11 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const secret = 'fgtrgwrgtetrwg5wtgwtg';
 app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
+app.use(cookieParser());
 mongoose.connect('mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog');
 const salt = bcrypt.genSaltSync(10);
 app.post('/register',async (req,res)=>{
@@ -35,9 +37,19 @@ app.post('/login', async (req,res)=>{
         if (err) throw err;
         res.cookie('token',token).json('ok');
     }) 
-
 })
-
+app.get('/profile',(req,res)=>{
+    const {token} = req.cookies;
+    jwt.verify(token,secret,{},(err,info)=>{
+        if(err){
+            res.status(400).json(err);
+        }
+        res.json(info);
+    })
+})
+app.post('/logout',(req,res)=>{
+    res.clearCookie('token').json('ok');
+})
 
     //mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog
 app.listen(4000);
