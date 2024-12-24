@@ -35,7 +35,7 @@ app.post('/login', async (req,res)=>{
     }
     const token = jwt.sign({username,id:userDoc._id},secret,{},(err,token)=>{
         if (err) throw err;
-        res.cookie('token',token).json('ok');
+        res.cookie('token',token).json({username,id:userDoc._id});
     }) 
 })
 app.get('/profile',(req,res)=>{
