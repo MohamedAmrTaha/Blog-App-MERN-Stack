@@ -3,15 +3,20 @@ const app = express();
 const cors = require('cors');
 const mongoose = require('mongoose');
 const User = require('./models/User');
+const Post = require('./models/Post');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const multer = require('multer');
+const fs = require('fs');
 const secret = 'fgtrgwrgtetrwg5wtgwtg';
 app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
 app.use(cookieParser());
 mongoose.connect('mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog');
 const salt = bcrypt.genSaltSync(10);
+const upload = multer({dest:'uploads/'});
+
 app.post('/register',async (req,res)=>{
     const{username,password} = req.body;
     try{
@@ -49,6 +54,18 @@ app.get('/profile',(req,res)=>{
 })
 app.post('/logout',(req,res)=>{
     res.clearCookie('token').json('ok');
+})
+
+app.post('/posts',upload.single('files'),async (req,res)=>{
+    const{originalname,path} = req.file;
+    const parts = originalname.split('.');
+    const extension = parts[parts.length-1];
+    const newPath = path+'.'+extension
+    fs.renameSync(path,newPath);
+    const{title,summary,content} = req.body;
+    postDoc = await Post.create({title,summary,content,file:newPath});
+
+    res.json(postDoc);
 })
 
     //mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog
