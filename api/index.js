@@ -79,5 +79,10 @@ app.get('/posts',async (req,res)=>{
     res.json(posts);
 })
 
+app.get('/posts/:id',async (req,res)=>{
+    const post = await Post.findById(req.params.id).populate('author',['userName']);
+    res.json(post);
+})
+
     //mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog
 app.listen(4000);
