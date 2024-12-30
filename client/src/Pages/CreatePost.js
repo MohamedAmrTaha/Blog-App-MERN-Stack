@@ -17,7 +17,8 @@ export default function CreatePost() {
         formData.append("files",files[0]);
         const response = await fetch("http://localhost:4000/posts",{
             method:"POST",
-            body:formData
+            body:formData,
+            credentials:'include',
         })
         if(response.ok){
             //navigate to home page

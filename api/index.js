@@ -13,6 +13,7 @@ const secret = 'fgtrgwrgtetrwg5wtgwtg';
 app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads',express.static(__dirname + '/uploads'));
 mongoose.connect('mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog');
 const salt = bcrypt.genSaltSync(10);
 const upload = multer({dest:'uploads/'});
@@ -62,10 +63,20 @@ app.post('/posts',upload.single('files'),async (req,res)=>{
     const extension = parts[parts.length-1];
     const newPath = path+'.'+extension
     fs.renameSync(path,newPath);
-    const{title,summary,content} = req.body;
-    postDoc = await Post.create({title,summary,content,file:newPath});
-
-    res.json(postDoc);
+    const {token} = req.cookies;
+    jwt.verify(token,secret,{},async (err,info)=>{
+        if(err){
+            res.status(400).json(err);
+        }
+        const{title,summary,content} = req.body;
+        postDoc = await Post.create({title,summary,content,file:newPath,author:info.id});
+        res.json(postDoc);
+    })
+    
+})
+app.get('/posts',async (req,res)=>{
+    const posts = await Post.find().populate('author',['userName']).sort({createdAt:-1}).limit(20);
+    res.json(posts);
 })
 
     //mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog

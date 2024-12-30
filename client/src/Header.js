@@ -6,7 +6,7 @@ export default function Header() {
   useEffect(()=>{
     fetch('http://localhost:4000/profile',
     {credentials:'include'}).then(res=>res.json().then(userInfo=>{
-      setUserInfo(userInfo.username);
+      setUserInfo(userInfo);
     }))
   },[])
   const logout = ()=>{
@@ -16,6 +16,7 @@ export default function Header() {
     }).then(()=>setUserInfo(null));
   }
   const username = userInfo?.username;
+  
     return(
     <header>
       <Link className="logo" to="/">MyBlog</Link>
