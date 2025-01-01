@@ -81,6 +81,9 @@ app.get('/posts',async (req,res)=>{
 
 app.get('/posts/:id',async (req,res)=>{
     const post = await Post.findById(req.params.id).populate('author',['userName']);
+    if (!post){
+        res.status(404).json({message:'Post not found'});
+    }
     res.json(post);
 })
 app.put('/posts',upload.single('files'),async (req,res)=>{
@@ -111,6 +114,24 @@ app.put('/posts',upload.single('files'),async (req,res)=>{
         res.json(postDoc);
     })
 })
+
+app.delete('/posts/:id',async (req,res)=>{
+    const {token} = req.cookies;
+    jwt.verify(token,secret,{},async (err,info)=>{
+        if(err){
+            res.status(400).json(err);
+        }
+        const postDoc = await Post.findById(req.params.id);
+        if(postDoc.author.toString() !== info.id){
+            res.status(400).json({message:'Not authorized'});
+        }
+        const deletedPost = await postDoc.deleteOne();
+        // delete the file from the server
+        fs.unlinkSync(postDoc.file);
+        res.json(deletedPost);
+    })
+})
+
 
 
     

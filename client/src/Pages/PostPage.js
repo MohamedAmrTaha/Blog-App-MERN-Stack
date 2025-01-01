@@ -4,20 +4,35 @@ import { useParams } from 'react-router-dom';
 import formatISO9075 from 'date-fns/formatISO9075';
 import { Link } from 'react-router-dom';
 import { UserContext } from '../UserContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function PostPage() {
     const {id} = useParams()
     const [postInfo, setPostInfo] = useState(null)
     const {userInfo} = useContext(UserContext)
+    const navigate = useNavigate()
     useEffect(()=>{
         fetch(`http://localhost:4000/posts/${id}`)
-        .then(response=>response.json()
-        .then(data=>setPostInfo(data)))
+        .then(response=> response.json())
+        .then(data=>setPostInfo(data))
 
     },[])
     if (!postInfo) {
         return <div>Loading...</div>
     }
+    const deletePost = async ()=>{
+       const response =  await fetch(`http://localhost:4000/posts/${id}`,{
+            method:'DELETE',
+            credentials:'include',
+        })
+        if(response.ok){
+            navigate('/')
+        }
+
+    }
+
+    
+
     return (
         <div className='post-page'>
             <h1>{postInfo?.title}</h1>
@@ -31,7 +46,14 @@ export default function PostPage() {
                     </svg>
                     Edit this post
                     </Link>
+                    <button className="delete-btn" onClick={deletePost}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Delete this post
+                    </button>
               </div>
+              
             )}
             <div className="image">
                 <img src={`http://localhost:4000/${postInfo.file}`} alt=""/>
