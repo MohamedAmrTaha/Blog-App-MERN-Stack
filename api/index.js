@@ -83,6 +83,35 @@ app.get('/posts/:id',async (req,res)=>{
     const post = await Post.findById(req.params.id).populate('author',['userName']);
     res.json(post);
 })
+app.put('/posts',upload.single('files'),async (req,res)=>{
+    let newPath = '';
+    if(req.file){
+        const{originalname,path} = req.file;
+        const parts = originalname.split('.');
+        const extension = parts[parts.length-1];
+        newPath = path+'.'+extension
+        fs.renameSync(path,newPath);
+    }
+    const {token} = req.cookies;
+    jwt.verify(token,secret,{},async (err,info)=>{
+        if(err){
+            res.status(400).json(err);
+        }
+        const{title,summary,content,id} = req.body;
+        const postDoc = await Post.findById(id);
+        if(postDoc.author.toString() !== info.id){
+            res.status(400).json({message:'Not authorized'});
+        }
+        await postDoc.updateOne({title,
+            summary,
+            content,
+            file:newPath? newPath:postDoc.file
+        });
+        
+        res.json(postDoc);
+    })
+})
 
-    //mongodb+srv://blog:blogblog@blog.bvvxh.mongodb.net/?retryWrites=true&w=majority&appName=Blog
+
+    
 app.listen(4000);
